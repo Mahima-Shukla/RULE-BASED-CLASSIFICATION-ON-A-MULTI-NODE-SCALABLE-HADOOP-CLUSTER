@@ -1,0 +1,104 @@
+
+package bigdataproject;
+
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.util.ArrayList;
+import java.util.Date;
+
+import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
+
+public class SerialClassifier1 {
+	
+	public static int counter_val = 0;
+
+	public static ArrayList<String> lstTrainData = new ArrayList<String>();
+	public static ArrayList<String> lstTestData = new ArrayList<String>();
+	public static ArrayList<Integer> lstOutClasses = new ArrayList<Integer>();
+	
+	public static void main(String[] args) { 
+		try {
+			String fileName;
+			JFileChooser jfc = new JFileChooser(".");
+			if(jfc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION)
+			{
+				fileName = jfc.getSelectedFile().getAbsolutePath();
+				JOptionPane.showMessageDialog(null, "Selected file:" + fileName);
+				
+				BufferedReader br = new BufferedReader(new FileReader(fileName));
+				counter_val = 0;
+				
+				String text;
+				
+				Date d1 = new Date();
+				
+				while((text = br.readLine()) != null) {
+					if(counter_val < 500)
+					{
+						//Add the first 100 entries as training set
+						lstTrainData.add(text);
+					}
+					else if(counter_val >= 500)
+					{
+						//We need to apply Ripper Classifier here
+						lstTestData.add(text);
+						
+						//Split the data by comma
+						String data_vals[] = text.split(",");
+						
+						//Best match
+						int best_match = 0;
+						int best_score = Integer.MAX_VALUE;
+						for(int count=0;count<lstTrainData.size();count++)
+						{
+							//Get the current training value
+							String[] train_vals = lstTrainData.get(count).split(",");
+							
+							//Initialize score
+							int score = 0;
+							for(int count2=1;count2<train_vals.length-1;count2++)
+							{
+								try {
+									//Get the difference between train_vals and data_vals (testing)
+									int data_val = Integer.parseInt(data_vals[count2].trim());
+									int train_val = Integer.parseInt(train_vals[count2].trim());
+									score = score + Math.abs(data_val-train_val);	
+								} catch (Exception e) {
+									// TODO: handle exception
+								}
+							}
+							
+							//Find the best score, which is minimum
+							if(score<best_score)
+							{
+								best_score = score;
+								best_match = count;
+							}
+						}
+						
+						String class_val = lstTrainData.get(best_match).split(",")[10];
+						if(class_val.equals("23"))
+							class_val = "Suspect";
+						else if(class_val.equals("10"))
+							class_val = "pathologic";
+						else
+							class_val = "No Deseas";
+						
+						System.out.println(text + " into class " + class_val);
+					}
+					counter_val++;
+				}
+				
+				Date d2 = new Date();
+				long delay = (d2.getTime() - d1.getTime());
+				System.out.println("Delay:" + delay + " ms");
+			}
+			
+			
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+	}
+}
